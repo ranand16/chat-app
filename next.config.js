@@ -4,7 +4,7 @@ const nextConfig = {
     appDir: true,
     topLevelAwait: true,
   },
-  images: ["https://lh3.googleusercontent.com"],
+  images: { domains: ["lh3.googleusercontent.com"] },
 };
 
 module.exports = {
