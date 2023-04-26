@@ -31,7 +31,6 @@ export async function POST(req: Request) {
     );
     if (!hasFriendReq)
       return new Response("No frined request", { status: 400 });
-    console.log("🚀 ~ file: route.ts:30 ~ POST ~ hasFriendReq:", hasFriendReq);
 
     await redisdb.sadd(`user:${session.user.id}:friends`, idToAdd);
     await redisdb.sadd(`user:${idToAdd}:friends`, session.user.id);
