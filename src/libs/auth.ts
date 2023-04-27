@@ -32,11 +32,10 @@ export const authOption: NextAuthOptions = {
         | string
         | null;
       if (!dbUserRes) {
-        token.id = user!.id;
+        token.id = user?.id;
         return token;
       }
       const dbUser = JSON.parse(dbUserRes) as User;
-      console.log("🚀 ~ file: auth.ts:39 ~ jwt ~ dbUser:", dbUser);
 
       return {
         id: dbUser.id,

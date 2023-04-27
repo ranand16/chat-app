@@ -4,7 +4,7 @@ import { FC } from "react";
 
 const Page = async ({}) => {
   const sesssion = await getServerSession();
-  return <pre>{JSON.stringify(sesssion)}</pre>;
+  return <pre>{sesssion?.user.email}</pre>;
 };
 
 export default Page;
