@@ -1,15 +1,17 @@
 "use client";
-import { cn } from "@/libs/utils";
+import { pusherClient } from "@/libs/Pusher";
+import { cn, pusherKey } from "@/libs/utils";
 import { Message } from "@/libs/validations/message";
 import { format } from "date-fns";
 import Image from "next/image";
-import { FC, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 interface MessagesComponentProps {
   initalMessages: Message[];
   sessionId: string;
   sessionImg: string | null | undefined;
   chatPartner: User;
+  chatId: string;
 }
 
 const MessagesComponent: FC<MessagesComponentProps> = ({
@@ -17,8 +19,26 @@ const MessagesComponent: FC<MessagesComponentProps> = ({
   sessionId,
   chatPartner,
   sessionImg,
+  chatId,
 }) => {
   const [messages, setMessages] = useState<Message[]>(initalMessages);
+
+  useEffect(() => {
+    pusherClient.subscribe(pusherKey(`chat:${chatId}`));
+    console.log("subscribe to ", `chat:${chatId}`);
+
+    const messageHandler = (message: Message) => {
+      setMessages((prev) => [message, ...prev]);
+      console.log("New friend request");
+    };
+    pusherClient.bind("incoming-message", messageHandler);
+
+    return () => {
+      pusherClient.unsubscribe(pusherKey(`chat:${chatId}`));
+      pusherClient.unbind("incoming-message", messageHandler);
+    };
+  }, [chatId]);
+
   const scrollDownRef = useRef<HTMLDivElement | null>(null);
 
   const formatTImestamp = (timestamp: number) => {
@@ -28,9 +48,9 @@ const MessagesComponent: FC<MessagesComponentProps> = ({
     <div className="flex h-full flex-1 flex-col-reverse gap-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrolbar-w-2 scrolling-touch">
       <div ref={scrollDownRef} />
       {messages.map((m, i) => {
-        const isCurrUser = m.senderId === sessionId;
+        const isCurrUser = m?.senderId === sessionId;
         const hasNextMsgFromSameUser =
-          messages[i - 1]?.senderId === messages[i].senderId;
+          messages[i - 1]?.senderId === messages[i]?.senderId;
         return (
           <div key={`${m.id}-${m.timestamp}`} className="chat-message ">
             <div
@@ -55,9 +75,9 @@ const MessagesComponent: FC<MessagesComponentProps> = ({
                     "rounded-bl-none": !hasNextMsgFromSameUser && !isCurrUser,
                   })}
                 >
-                  {m.text}{" "}
+                  {m?.text}{" "}
                   <span className="ml-2 text-xs text-gray-400 ">
-                    {formatTImestamp(m.timestamp)}
+                    {formatTImestamp(m?.timestamp)}
                   </span>
                 </span>
               </div>

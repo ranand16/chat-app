@@ -36,15 +36,12 @@ async function getChatMessages(chatId: string) {
 
 const Page = async ({ params }: PageProps) => {
   const { chatId } = params;
-  console.log("🚀 ~ file: page.tsx:12 ~ chatId:", chatId);
   const session = await getServerSession(authOption);
   if (!session) notFound();
 
   const { user } = session;
 
   const [userId1, userId2] = chatId.split("--");
-
-  console.log("🚀 ~ file: page.tsx:50 ~ Page ~ user.id:", user.id);
 
   if (user.id != userId1 && user.id != userId2) {
     notFound();
@@ -80,6 +77,7 @@ const Page = async ({ params }: PageProps) => {
         </div>
       </div>
       <MessagesComponent
+        chatId={chatId}
         chatPartner={partner}
         sessionImg={session.user.image}
         initalMessages={initalMessages}

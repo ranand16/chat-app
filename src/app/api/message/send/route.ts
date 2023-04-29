@@ -1,6 +1,8 @@
 import { fetchRedis } from "@/helpers/redis";
+import { pusherServer } from "@/libs/Pusher";
 import { authOption } from "@/libs/auth";
 import { redisdb } from "@/libs/db";
+import { pusherKey } from "@/libs/utils";
 import { Message, messageValidator } from "@/libs/validations/message";
 import { nanoid } from "nanoid";
 import { getServerSession } from "next-auth";
@@ -39,6 +41,14 @@ export async function POST(request: Request) {
       timestamp: timestamp,
     };
     const message = messageValidator.parse(messageData);
+
+    //realtime nor=tification
+    pusherServer.trigger(
+      pusherKey(`chat:${chatId}`),
+      "incoming-message",
+      message
+    );
+
     // sending
     await redisdb.zadd(`chat:${chatId}:messages`, {
       score: timestamp,
