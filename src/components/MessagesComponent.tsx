@@ -25,7 +25,6 @@ const MessagesComponent: FC<MessagesComponentProps> = ({
 
   useEffect(() => {
     pusherClient.subscribe(pusherKey(`chat:${chatId}`));
-    console.log("subscribe to ", `chat:${chatId}`);
 
     const messageHandler = (message: Message) => {
       setMessages((prev) => [message, ...prev]);

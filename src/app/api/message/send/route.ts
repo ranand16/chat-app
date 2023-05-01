@@ -42,12 +42,18 @@ export async function POST(request: Request) {
     };
     const message = messageValidator.parse(messageData);
 
-    //realtime nor=tification
+    //realtime notification
     pusherServer.trigger(
       pusherKey(`chat:${chatId}`),
       "incoming-message",
       message
     );
+
+    pusherServer.trigger(pusherKey(`user:${friendId}:chats`), "new_message", {
+      ...message,
+      senderImage: parseSenderInfo.image,
+      senderName: parseSenderInfo.name,
+    });
 
     // sending
     await redisdb.zadd(`chat:${chatId}:messages`, {

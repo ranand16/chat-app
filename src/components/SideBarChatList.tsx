@@ -1,7 +1,15 @@
 "use client";
-import { chatHrefContructor } from "@/libs/utils";
+import { pusherClient } from "@/libs/Pusher";
+import { chatHrefContructor, pusherKey } from "@/libs/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { FC, useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import UnseenToast from "./UnseenChatToast";
+
+interface EntendedMessage extends Message {
+  senderName: string;
+  senderImage: string;
+}
 
 interface SideBarChatListProps {
   friends: User[];
@@ -11,6 +19,44 @@ interface SideBarChatListProps {
 const SideBarChatList: FC<SideBarChatListProps> = ({ friends, sessionId }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const [unseenMsg, setUnseenMsg] = useState<Message[]>([]);
+
+  useEffect(() => {
+    pusherClient.subscribe(pusherKey(`user:${sessionId}:chats`));
+    pusherClient.subscribe(pusherKey(`user:${sessionId}:friends`));
+
+    const newFriendhandler = () => {
+      router.refresh();
+    };
+
+    const chathandler = (message: EntendedMessage) => {
+      const shouldNotify =
+        pathname !==
+        `/dashboard/chat/${chatHrefContructor(sessionId, message.senderId)}`;
+      if (!shouldNotify) return;
+      toast.custom((t) => (
+        <UnseenToast
+          sessionId={sessionId}
+          senderId={message.senderId}
+          senderImage={message.senderImage}
+          senderMessage={message.text}
+          senderName={message.senderName}
+          t={t}
+          key={message.id}
+        />
+      ));
+      setUnseenMsg((prev) => [...prev, message]);
+    };
+
+    pusherClient.bind("new_message", chathandler);
+    pusherClient.bind("new_friend", newFriendhandler);
+
+    return () => {
+      pusherClient.unsubscribe(pusherKey(`user:${sessionId}:chats`));
+      pusherClient.unsubscribe(pusherKey(`user:${sessionId}:friends`));
+    };
+  }, [pathname, sessionId, router]);
+
   useEffect(() => {
     if (pathname?.includes("chat")) {
       setUnseenMsg((prev) => {
@@ -18,13 +64,13 @@ const SideBarChatList: FC<SideBarChatListProps> = ({ friends, sessionId }) => {
       });
     }
   }, [pathname]);
-  const [unseenMsg, setUnseenMsg] = useState<Message[]>([]);
   return (
     <ul className="max-h-[25rem] overflow-y-auto -mx-2 space-y-1 " role="list">
       {friends.sort().map((f) => {
         const unseenMsgsCount = unseenMsg.filter((usm) => {
           return usm.senderId === f.id;
         }).length;
+
         return (
           <li key={f.id}>
             <a
