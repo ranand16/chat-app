@@ -46,7 +46,7 @@ const Page = async ({ params }: PageProps) => {
   if (user.id != userId1 && user.id != userId2) {
     notFound();
   }
-  const partnerId = user.id === userId1 ? userId1 : userId2;
+  const partnerId = user.id !== userId1 ? userId1 : userId2;
 
   const partner = (await redisdb.get(`user:${partnerId}`)) as User;
   const initalMessages = await getChatMessages(chatId);

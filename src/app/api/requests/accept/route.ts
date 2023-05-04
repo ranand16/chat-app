@@ -1,6 +1,8 @@
 import { fetchRedis } from "@/helpers/redis";
+import { pusherServer } from "@/libs/Pusher";
 import { authOption } from "@/libs/auth";
 import { redisdb } from "@/libs/db";
+import { pusherKey } from "@/libs/utils";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
@@ -32,6 +34,11 @@ export async function POST(req: Request) {
     if (!hasFriendReq)
       return new Response("No frined request", { status: 400 });
 
+    pusherServer.trigger(
+      pusherKey(`user:${idToAdd}:friends`),
+      "new_friend",
+      {}
+    );
     await redisdb.sadd(`user:${session.user.id}:friends`, idToAdd);
     await redisdb.sadd(`user:${idToAdd}:friends`, session.user.id);
     await redisdb.srem(
