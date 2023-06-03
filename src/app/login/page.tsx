@@ -4,11 +4,8 @@ import Button from "@/components/Button";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "react-hot-toast";
-interface PageProps {
-  on: string;
-}
 
-const Page: React.FC<PageProps> = ({ on }) => {
+export default function Page() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const loginWithGoogle = async () => {
     setIsLoading(true);
@@ -72,6 +69,4 @@ const Page: React.FC<PageProps> = ({ on }) => {
       </div>
     </>
   );
-};
-
-export default Page;
+}
